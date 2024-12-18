@@ -33,7 +33,7 @@ export default async function () {
           ))}
         <p className="text-gray-300 text-xs text-center">OR</p>
         <form method="POST" className="grid gap-4" action="/api/auth/callback/credentials?kind=up">
-        <div className="grid gap-2">
+          <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input name="email" id="email" type="email" placeholder="m@example.com" required />
           </div>

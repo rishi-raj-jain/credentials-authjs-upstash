@@ -1,7 +1,8 @@
-import redis from './redis'
-import Google from 'next-auth/providers/google'
+import { nanoid } from 'nanoid'
 import Credentials from 'next-auth/providers/credentials'
+import Google from 'next-auth/providers/google'
 import { comparePassword, generateRandomString, hashPassword } from './credentials'
+import redis from './redis'
 
 export default [
   Google,
@@ -15,7 +16,7 @@ export default [
       try {
         const tmp = new URL(request.url).searchParams.get('kind')
         if (tmp && typeof tmp === 'string') type = tmp
-      } catch (e) { }
+      } catch (e) {}
       if (!type || !credentials.email || typeof credentials.email !== 'string' || !credentials.password || typeof credentials.password !== 'string') return null
       const randomizedPassword = await generateRandomString(credentials.password)
       const userByEmail = await redis.get<string | null | undefined>(`user:email:${credentials.email}`)
@@ -24,13 +25,17 @@ export default [
           console.log(`can not sign in in a non sign-in mode.`)
           throw new Error(`can not sign in in a non sign-in mode.`)
         }
-        const user = JSON.parse(userByEmail)
+        const user = await redis.get<{ password: string; name?: string; email: string; image?: string; emailVerified?: string }>(`user:${userByEmail}`)
+        if (!user) {
+          console.log(`Found the user by email from user:email:${userByEmail}, but the user object is missing at user:${userByEmail}`)
+          return null
+        }
         if (user.password) {
           const hashedPassword = await hashPassword(randomizedPassword)
           const isPasswordCorrect = await comparePassword(user.password, hashedPassword)
           if (isPasswordCorrect) {
-            delete user['password']
-            return user
+            const { password, ...rest } = user
+            return rest
           }
           throw new Error(`incorrect password for credentials.`)
         }
@@ -42,11 +47,14 @@ export default [
         }
         const newUser = {
           name: null,
-          email: credentials.email,
           image: null,
+          emailVerified: null,
+          email: credentials.email,
           password: randomizedPassword,
         }
-        await redis.set(`user:email:${credentials.email}`, newUser)
+        const tmp = nanoid()
+        await redis.set(`user:email:${credentials.email}`, tmp)
+        await redis.set(`user:${tmp}`, newUser)
         return newUser
       }
     },
