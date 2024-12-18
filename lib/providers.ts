@@ -3,6 +3,7 @@ import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import { comparePassword, generateRandomString, hashPassword } from './credentials'
 import redis from './redis'
+import { UserType } from './types'
 
 export default [
   Google,
@@ -25,7 +26,7 @@ export default [
           console.log(`can not sign in in a non sign-in mode.`)
           throw new Error(`can not sign in in a non sign-in mode.`)
         }
-        const user = await redis.get<{ password: string; name?: string; email: string; image?: string; emailVerified?: string }>(`user:${userByEmail}`)
+        const user = await redis.get<UserType>(`user:${userByEmail}`)
         if (!user) {
           console.log(`Found the user by email from user:email:${userByEmail}, but the user object is missing at user:${userByEmail}`)
           return null
