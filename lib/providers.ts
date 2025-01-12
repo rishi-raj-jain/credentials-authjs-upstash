@@ -1,12 +1,10 @@
 import { nanoid } from 'nanoid'
 import Credentials from 'next-auth/providers/credentials'
-import Google from 'next-auth/providers/google'
 import { comparePassword, generateRandomString, hashPassword } from './credentials'
 import redis from './redis'
 import { UserType } from './types'
 
 export default [
-  Google,
   Credentials({
     credentials: {
       email: {},

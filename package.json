@@ -1,5 +1,5 @@
 {
-  "name": "google-credentials-authjs-upstash",
+  "name": "credentials-authjs-upstash",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
